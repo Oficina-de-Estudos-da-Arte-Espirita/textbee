@@ -14,11 +14,6 @@ const nextConfig = {
         destination: '/dashboard',
         permanent: true,
       },
-      {
-        source: '/android',
-        destination: 'https://dl.textbee.dev',
-        permanent: false,
-      },
     ]
   },
 }

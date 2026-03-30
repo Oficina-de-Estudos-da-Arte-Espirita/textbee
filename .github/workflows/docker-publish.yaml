@@ -117,7 +117,9 @@ jobs:
               uses: docker/build-push-action@v5
               with:
                   context: web
-                  build-args: VERSION=${{ github.event.inputs.git_ref || github.ref_name }}
+                  build-args: |
+                      VERSION=${{ github.event.inputs.git_ref || github.ref_name }}
+                      NEXT_PUBLIC_API_BASE_URL=https://sms.oficina.org.br/api/v1
                   push: ${{ github.event_name != 'pull_request' }}
                   tags: ${{ steps.meta-web.outputs.tags }}
                   platforms: linux/amd64,linux/arm64

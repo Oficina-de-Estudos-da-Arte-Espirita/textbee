@@ -3,3 +3,6 @@
 *-monitor
 
 .cursor
+
+# Firebase config (contains API keys — injected via CI secrets)
+**/google-services.json

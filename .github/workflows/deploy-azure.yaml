@@ -1,0 +1,98 @@
+name: Deploy to Azure Container Apps
+
+on:
+  workflow_run:
+    workflows: ["Build and push a Docker image"]
+    types: [completed]
+    branches: [main]
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+      service:
+        description: 'Service to deploy'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - api
+          - web
+          - both
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository }}
+
+jobs:
+  deploy-dev:
+    name: Deploy to dev
+    runs-on: ubuntu-latest
+    if: >
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name == 'workflow_dispatch' && inputs.environment == 'dev')
+    environment: dev
+
+    steps:
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy API container
+        if: >
+          github.event_name == 'workflow_run' ||
+          inputs.service == 'api' || inputs.service == 'both'
+        run: |
+          az containerapp update \
+            --name oeae-textbee-api-dev \
+            --resource-group oeae-dev \
+            --image ${{ env.IMAGE_PREFIX }}/api:latest
+
+      - name: Deploy Web container
+        if: >
+          github.event_name == 'workflow_run' ||
+          inputs.service == 'web' || inputs.service == 'both'
+        run: |
+          az containerapp update \
+            --name oeae-textbee-web-dev \
+            --resource-group oeae-dev \
+            --image ${{ env.IMAGE_PREFIX }}/web:latest
+
+  deploy-prod:
+    name: Deploy to prod
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && inputs.environment == 'prod'
+    environment: production
+
+    steps:
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy API container
+        if: inputs.service == 'api' || inputs.service == 'both'
+        run: |
+          az containerapp update \
+            --name oeae-textbee-api-prod \
+            --resource-group oeae-prod \
+            --image ${{ env.IMAGE_PREFIX }}/api:latest
+
+      - name: Deploy Web container
+        if: inputs.service == 'web' || inputs.service == 'both'
+        run: |
+          az containerapp update \
+            --name oeae-textbee-web-prod \
+            --resource-group oeae-prod \
+            --image ${{ env.IMAGE_PREFIX }}/web:latest

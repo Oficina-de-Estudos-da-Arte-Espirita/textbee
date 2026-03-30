@@ -29,6 +29,9 @@ COPY . .
 # Set environment variables for building
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# NEXT_PUBLIC_* vars are inlined at build time by Next.js
+ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api/v1
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 
 # Build the application
 RUN pnpm build

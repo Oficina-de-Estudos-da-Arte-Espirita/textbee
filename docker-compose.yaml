@@ -48,12 +48,12 @@ services:
       dockerfile: Dockerfile
     restart: always
     ports:
-      - "${PORT:-3001}:3001"
+      - "${API_PORT:-3001}:3001"
     env_file:
       - ./api/.env
     environment:
-      - PORT=${PORT:-3001}
-      - REDIS_URL=${REDIS_URL:-redis://textbee-redis:6379}
+      - PORT=3001
+      - USE_SMS_QUEUE=false
 
     depends_on:
       textbee-db:
@@ -70,11 +70,11 @@ services:
       dockerfile: Dockerfile
     restart: always
     ports:
-      - "${PORT:-3000}:3000"
+      - "${WEB_PORT:-3000}:3000"
     env_file:
       - ./web/.env
     environment:
-      - PORT=${PORT:-3000}
+      - PORT=3000
       - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3001/api/v1}
 
     depends_on:
@@ -82,29 +82,9 @@ services:
     networks:
       - textbee-network
 
-  # Redis (if SMS queue is needed)
-  textbee-redis:
-    container_name: textbee-redis
-    image: redis:alpine
-    restart: always
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - textbee-network
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
-
 networks:
   textbee-network:
     driver: bridge
 
 volumes:
   mongodb_data:
-  redis_data: 
