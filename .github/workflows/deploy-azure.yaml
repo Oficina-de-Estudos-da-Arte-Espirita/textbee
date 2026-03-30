@@ -65,7 +65,7 @@ jobs:
           az containerapp update \
             --name oeae-textbee-web-dev \
             --resource-group oeae-dev \
-            --image ${{ env.IMAGE_PREFIX }}/web:latest
+            --image ${{ env.IMAGE_PREFIX }}/web:latest-dev
 
   deploy-prod:
     name: Deploy to prod
