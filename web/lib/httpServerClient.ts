@@ -6,9 +6,12 @@ import { Session } from 'next-auth'
 // Create a base URL that works in Docker container network if running in a container
 // or falls back to the public URL if not in a container
 const getServerSideBaseUrl = () => {
-  // When running server-side in Docker, use the service name from docker-compose
+  // Explicit override for server-side API URL (e.g. Azure Container Apps)
+  if (process.env.API_INTERNAL_URL) {
+    return process.env.API_INTERNAL_URL
+  }
+  // When running server-side in Docker Compose, use the service name
   if (process.env.CONTAINER_RUNTIME === 'docker') {
-    console.log('Running in Docker container')
     return 'http://textbee-api:3001/api/v1'
   }
   // Otherwise use the public URL
