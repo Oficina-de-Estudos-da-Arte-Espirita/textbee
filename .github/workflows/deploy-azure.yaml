@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["Build and push a Docker image"]
     types: [completed]
-    branches: [main]
+    branches: [dev, main]
 
   workflow_dispatch:
     inputs:
@@ -35,7 +35,7 @@ jobs:
     name: Deploy to dev
     runs-on: ubuntu-latest
     if: >
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'dev') ||
       (github.event_name == 'workflow_dispatch' && inputs.environment == 'dev')
     permissions:
       id-token: write
@@ -57,7 +57,7 @@ jobs:
           az containerapp update \
             --name oeae-textbee-api-dev \
             --resource-group oeae-dev \
-            --image ${{ env.IMAGE_PREFIX }}/api:latest
+            --image ${{ env.IMAGE_PREFIX }}/api:dev
 
       - name: Deploy Web container
         if: >
@@ -67,12 +67,14 @@ jobs:
           az containerapp update \
             --name oeae-textbee-web-dev \
             --resource-group oeae-dev \
-            --image ${{ env.IMAGE_PREFIX }}/web:latest-dev
+            --image ${{ env.IMAGE_PREFIX }}/web:dev
 
   deploy-prod:
     name: Deploy to prod
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && inputs.environment == 'prod'
+    if: >
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') ||
+      (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod')
     environment: production
     permissions:
       id-token: write
@@ -87,7 +89,9 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy API container
-        if: inputs.service == 'api' || inputs.service == 'both'
+        if: >
+          github.event_name == 'workflow_run' ||
+          inputs.service == 'api' || inputs.service == 'both'
         run: |
           az containerapp update \
             --name oeae-textbee-api-prod \
@@ -95,7 +99,9 @@ jobs:
             --image ${{ env.IMAGE_PREFIX }}/api:latest
 
       - name: Deploy Web container
-        if: inputs.service == 'web' || inputs.service == 'both'
+        if: >
+          github.event_name == 'workflow_run' ||
+          inputs.service == 'web' || inputs.service == 'both'
         run: |
           az containerapp update \
             --name oeae-textbee-web-prod \
