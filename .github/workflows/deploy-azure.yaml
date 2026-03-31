@@ -38,6 +38,9 @@ jobs:
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
       (github.event_name == 'workflow_dispatch' && inputs.environment == 'dev')
     environment: dev
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Azure login
@@ -72,6 +75,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && inputs.environment == 'prod'
     environment: production
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Azure login
