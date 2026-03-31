@@ -50,7 +50,7 @@ android {
             dimension "environment"
             applicationId "br.org.oficina.sms.dev"
             versionNameSuffix "-dev"
-            buildConfigField "String", "API_BASE_URL", '"https://sms-dev.oficina.org.br/api/v1/"'
+            buildConfigField "String", "API_BASE_URL", '"https://oeae-textbee-api-dev.mangoisland-511a26c8.centralus.azurecontainerapps.io/api/v1/"'
             buildConfigField "String", "ENVIRONMENT", '"development"'
             resValue "string", "app_name", "OEAE SMS (Dev)"
         }
