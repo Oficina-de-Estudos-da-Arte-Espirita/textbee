@@ -15,7 +15,7 @@ export class SmsQueueService {
     @InjectQueue('sms') private readonly smsQueue: Queue,
     private readonly configService: ConfigService,
   ) {
-    this.useSmsQueue = this.configService.get<boolean>('USE_SMS_QUEUE', false)
+    this.useSmsQueue = this.configService.get('USE_SMS_QUEUE', 'false') === 'true'
     this.maxSmsBatchSize = this.configService.get<number>(
       'MAX_SMS_BATCH_SIZE',
       100,

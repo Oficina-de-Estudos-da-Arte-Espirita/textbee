@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
   Param,
   Patch,
@@ -39,6 +40,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('/google-login')
   async googleLogin(@Body() input: any) {
+    if (process.env.GOOGLE_LOGIN_ENABLED === 'false') {
+      throw new HttpException({ error: 'Feature disabled' }, HttpStatus.FORBIDDEN)
+    }
     const data = await this.authService.loginWithGoogle(input.idToken)
     return { data }
   }
@@ -46,6 +50,9 @@ export class AuthController {
   @ApiOperation({ summary: 'Register' })
   @Post('/register')
   async register(@Body() input: RegisterInputDTO) {
+    if (process.env.REGISTRATION_ENABLED === 'false') {
+      throw new HttpException({ error: 'Feature disabled' }, HttpStatus.FORBIDDEN)
+    }
     const data = await this.authService.register(input)
     return { data }
   }
@@ -134,6 +141,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('/request-password-reset')
   async requestPasswordReset(@Body() input: RequestResetPasswordInputDTO) {
+    if (process.env.PASSWORD_RESET_ENABLED === 'false') {
+      throw new HttpException({ error: 'Feature disabled' }, HttpStatus.FORBIDDEN)
+    }
     return await this.authService.requestResetPassword(input)
   }
 
@@ -141,6 +151,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('/reset-password')
   async resetPassword(@Body() input: ResetPasswordInputDTO) {
+    if (process.env.PASSWORD_RESET_ENABLED === 'false') {
+      throw new HttpException({ error: 'Feature disabled' }, HttpStatus.FORBIDDEN)
+    }
     return await this.authService.resetPassword(input)
   }
 

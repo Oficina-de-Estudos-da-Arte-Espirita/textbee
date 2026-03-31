@@ -138,6 +138,9 @@ jobs:
                   build-args: |
                       VERSION=${{ github.event.inputs.git_ref || github.ref_name }}
                       NEXT_PUBLIC_API_BASE_URL=${{ steps.api-url.outputs.url }}
+                      NEXT_PUBLIC_REGISTRATION_ENABLED=false
+                      NEXT_PUBLIC_GOOGLE_LOGIN_ENABLED=false
+                      NEXT_PUBLIC_PASSWORD_RESET_ENABLED=false
                   push: ${{ github.event_name != 'pull_request' }}
                   tags: ${{ steps.meta-web.outputs.tags }}
                   platforms: linux/amd64,linux/arm64

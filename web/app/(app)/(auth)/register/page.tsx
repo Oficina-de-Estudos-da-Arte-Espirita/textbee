@@ -14,10 +14,17 @@ import LoginWithGoogle from '../(components)/login-with-google'
 import RegisterForm from '../(components)/register-form'
 import { Routes } from '@/config/routes'
 import { useSearchParams } from 'next/navigation'
+import { redirect } from 'next/navigation'
+
+const registrationEnabled = process.env.NEXT_PUBLIC_REGISTRATION_ENABLED !== 'false'
 
 export default function RegisterPage() {
+  if (!registrationEnabled) {
+    redirect(Routes.login)
+  }
+
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect')
+  const redirectParam = searchParams.get('redirect')
 
   return (
     <div className='flex items-center justify-center min-h-screen bg-gray-100 dark:bg-muted'>
@@ -53,7 +60,7 @@ export default function RegisterPage() {
               href={{
                 pathname: Routes.login,
                 query: {
-                  redirect: redirect ? decodeURIComponent(redirect) : undefined,
+                  redirect: redirectParam ? decodeURIComponent(redirectParam) : undefined,
                 },
               }}
               className='font-medium text-brand-600 hover:underline'
