@@ -37,7 +37,6 @@ jobs:
     if: >
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
       (github.event_name == 'workflow_dispatch' && inputs.environment == 'dev')
-    environment: dev
     permissions:
       id-token: write
       contents: read
