@@ -1,0 +1,382 @@
+{
+	"info": {
+		"name": "TextBee SMS Gateway",
+		"description": "TextBee SMS Gateway API — OEAE self-hosted instance",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://oeae-gateway-prod.azure-api.net/api/textbee/api/v1"
+		},
+		{
+			"key": "accessToken",
+			"value": ""
+		},
+		{
+			"key": "deviceId",
+			"value": ""
+		},
+		{
+			"key": "apiKeyId",
+			"value": ""
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"OEAE Admin\",\n  \"email\": \"admin@oficina.org.br\",\n  \"password\": \"your-password\",\n  \"turnstileToken\": \"skip\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
+						"description": "Register a new account. Requires REGISTRATION_ENABLED=true on the API."
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.data && json.data.accessToken) {",
+									"    pm.collectionVariables.set('accessToken', json.data.accessToken);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@oficina.org.br\",\n  \"password\": \"your-password\",\n  \"turnstileToken\": \"skip\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+						"description": "Login and get access token. Auto-saves token to collection variable."
+					}
+				},
+				{
+					"name": "Who Am I",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "{{baseUrl}}/auth/who-am-i", "host": ["{{baseUrl}}"], "path": ["auth", "who-am-i"] }
+					}
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"OEAE Admin\",\n  \"phone\": \"+5511999999999\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{baseUrl}}/auth/update-profile", "host": ["{{baseUrl}}"], "path": ["auth", "update-profile"] }
+					}
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"oldPassword\": \"current-password\",\n  \"newPassword\": \"new-password\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{baseUrl}}/auth/change-password", "host": ["{{baseUrl}}"], "path": ["auth", "change-password"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "API Keys",
+			"item": [
+				{
+					"name": "Generate API Key",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.data && json.data._id) {",
+									"    pm.collectionVariables.set('apiKeyId', json.data._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": { "raw": "{{baseUrl}}/auth/api-keys", "host": ["{{baseUrl}}"], "path": ["auth", "api-keys"] },
+						"description": "Generate a new API key. Save the key value — it's only shown once."
+					}
+				},
+				{
+					"name": "List API Keys",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "{{baseUrl}}/auth/api-keys", "host": ["{{baseUrl}}"], "path": ["auth", "api-keys"] },
+						"description": "List API keys (masked)."
+					}
+				},
+				{
+					"name": "Rename API Key",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"oeae-prod\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{baseUrl}}/auth/api-keys/{{apiKeyId}}/rename", "host": ["{{baseUrl}}"], "path": ["auth", "api-keys", "{{apiKeyId}}", "rename"] }
+					}
+				},
+				{
+					"name": "Revoke API Key",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": { "raw": "{{baseUrl}}/auth/api-keys/{{apiKeyId}}/revoke", "host": ["{{baseUrl}}"], "path": ["auth", "api-keys", "{{apiKeyId}}", "revoke"] }
+					}
+				},
+				{
+					"name": "Delete API Key",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": { "raw": "{{baseUrl}}/auth/api-keys/{{apiKeyId}}", "host": ["{{baseUrl}}"], "path": ["auth", "api-keys", "{{apiKeyId}}"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "Devices",
+			"item": [
+				{
+					"name": "List Devices",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.data && json.data.length > 0) {",
+									"    pm.collectionVariables.set('deviceId', json.data[0]._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "{{baseUrl}}/gateway/devices", "host": ["{{baseUrl}}"], "path": ["gateway", "devices"] },
+						"description": "List registered devices. Auto-saves first device ID."
+					}
+				},
+				{
+					"name": "Get Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "{{baseUrl}}/gateway/stats", "host": ["{{baseUrl}}"], "path": ["gateway", "stats"] }
+					}
+				},
+				{
+					"name": "Delete Device",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": { "raw": "{{baseUrl}}/gateway/devices/{{deviceId}}", "host": ["{{baseUrl}}"], "path": ["gateway", "devices", "{{deviceId}}"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "SMS",
+			"item": [
+				{
+					"name": "Send SMS",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"recipients\": [\"+5511999999999\"],\n  \"message\": \"Test SMS from OEAE TextBee\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{baseUrl}}/gateway/devices/{{deviceId}}/send-sms", "host": ["{{baseUrl}}"], "path": ["gateway", "devices", "{{deviceId}}", "send-sms"] },
+						"description": "Send SMS via the Android device gateway."
+					}
+				},
+				{
+					"name": "Send Bulk SMS",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"messageTemplate\": \"Hello {{name}}, your code is {{code}}\",\n  \"messages\": [\n    {\n      \"recipients\": [\"+5511999999999\"],\n      \"message\": \"Hello User, your code is 123456\"\n    }\n  ]\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{baseUrl}}/gateway/devices/{{deviceId}}/send-bulk-sms", "host": ["{{baseUrl}}"], "path": ["gateway", "devices", "{{deviceId}}", "send-bulk-sms"] }
+					}
+				},
+				{
+					"name": "Get Received SMS",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/gateway/devices/{{deviceId}}/get-received-sms?page=1&limit=50",
+							"host": ["{{baseUrl}}"],
+							"path": ["gateway", "devices", "{{deviceId}}", "get-received-sms"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "50" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Message History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/gateway/devices/{{deviceId}}/messages?page=1&limit=50&type=all",
+							"host": ["{{baseUrl}}"],
+							"path": ["gateway", "devices", "{{deviceId}}", "messages"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "50" },
+								{ "key": "type", "value": "all", "description": "all, sent, or received" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Get SMS by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "{{baseUrl}}/gateway/devices/{{deviceId}}/sms/:smsId", "host": ["{{baseUrl}}"], "path": ["gateway", "devices", "{{deviceId}}", "sms", ":smsId"], "variable": [{ "key": "smsId", "value": "" }] }
+					}
+				},
+				{
+					"name": "Get SMS Batch by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "{{baseUrl}}/gateway/devices/{{deviceId}}/sms-batch/:smsBatchId", "host": ["{{baseUrl}}"], "path": ["gateway", "devices", "{{deviceId}}", "sms-batch", ":smsBatchId"], "variable": [{ "key": "smsBatchId", "value": "" }] }
+					}
+				},
+				{
+					"name": "Update SMS Status",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"smsId\": \"\",\n  \"smsBatchId\": \"\",\n  \"status\": \"delivered\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{baseUrl}}/gateway/devices/{{deviceId}}/sms-status", "host": ["{{baseUrl}}"], "path": ["gateway", "devices", "{{deviceId}}", "sms-status"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "Webhooks",
+			"item": [
+				{
+					"name": "List Webhooks",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "{{baseUrl}}/webhooks", "host": ["{{baseUrl}}"], "path": ["webhooks"] }
+					}
+				},
+				{
+					"name": "Get Webhook",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "{{baseUrl}}/webhooks/:webhookId", "host": ["{{baseUrl}}"], "path": ["webhooks", ":webhookId"], "variable": [{ "key": "webhookId", "value": "" }] }
+					}
+				},
+				{
+					"name": "Create Webhook",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"deliveryUrl\": \"https://example.com/webhook\",\n  \"events\": [\"sms.received\", \"sms.sent\", \"sms.failed\"],\n  \"signingSecret\": \"optional-secret\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{baseUrl}}/webhooks", "host": ["{{baseUrl}}"], "path": ["webhooks"] }
+					}
+				},
+				{
+					"name": "Update Webhook",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"isActive\": true,\n  \"deliveryUrl\": \"https://example.com/webhook\",\n  \"events\": [\"sms.received\"],\n  \"signingSecret\": \"optional-secret\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{baseUrl}}/webhooks/:webhookId", "host": ["{{baseUrl}}"], "path": ["webhooks", ":webhookId"], "variable": [{ "key": "webhookId", "value": "" }] }
+					}
+				},
+				{
+					"name": "Get Webhook Notifications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/webhooks/notifications?page=1&limit=50",
+							"host": ["{{baseUrl}}"],
+							"path": ["webhooks", "notifications"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "50" },
+								{ "key": "status", "value": "", "disabled": true },
+								{ "key": "eventType", "value": "", "disabled": true },
+								{ "key": "deviceId", "value": "", "disabled": true }
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
