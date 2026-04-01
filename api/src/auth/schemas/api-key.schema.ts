@@ -31,3 +31,4 @@ export class ApiKey {
 }
 
 export const ApiKeySchema = SchemaFactory.createForClass(ApiKey)
+ApiKeySchema.index({ user: 1, createdAt: -1 })

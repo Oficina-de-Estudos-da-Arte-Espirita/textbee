@@ -16,6 +16,10 @@ import LoginWithGoogle from '../(components)/login-with-google'
 import LoginForm from '../(components)/login-form'
 import { Routes } from '@/config/routes'
 
+const registrationEnabled = process.env.NEXT_PUBLIC_REGISTRATION_ENABLED !== 'false'
+const googleLoginEnabled = process.env.NEXT_PUBLIC_GOOGLE_LOGIN_ENABLED !== 'false'
+const passwordResetEnabled = process.env.NEXT_PUBLIC_PASSWORD_RESET_ENABLED !== 'false'
+
 export default function LoginPage() {
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect')
@@ -33,41 +37,49 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <LoginForm />
-          <div className='relative mt-4'>
-            <div className='absolute inset-0 flex items-center'>
-              <span className='w-full border-t' />
-            </div>
-            <div className='relative flex justify-center text-xs uppercase'>
-              <span className='bg-background dark:bg-muted px-2 text-muted-foreground'>
-                Or
-              </span>
-            </div>
-          </div>
-          <div className='mt-4 flex justify-center'>
-            <LoginWithGoogle />
-          </div>
+          {googleLoginEnabled && (
+            <>
+              <div className='relative mt-4'>
+                <div className='absolute inset-0 flex items-center'>
+                  <span className='w-full border-t' />
+                </div>
+                <div className='relative flex justify-center text-xs uppercase'>
+                  <span className='bg-background dark:bg-muted px-2 text-muted-foreground'>
+                    Or
+                  </span>
+                </div>
+              </div>
+              <div className='mt-4 flex justify-center'>
+                <LoginWithGoogle />
+              </div>
+            </>
+          )}
         </CardContent>
         <CardFooter className='flex flex-col space-y-2 text-center'>
-          <Link
-            href={Routes.resetPassword}
-            className='text-sm text-brand-600 hover:underline'
-          >
-            Forgot your password?
-          </Link>
-          <p className='text-sm text-gray-600'>
-            Don&apos;t have an account?{' '}
+          {passwordResetEnabled && (
             <Link
-              href={{
-                pathname: Routes.register,
-                query: {
-                  redirect: redirect ? decodeURIComponent(redirect) : undefined,
-                },
-              }}
-              className='font-medium text-brand-600 hover:underline'
+              href={Routes.resetPassword}
+              className='text-sm text-brand-600 hover:underline'
             >
-              Sign up
+              Forgot your password?
             </Link>
-          </p>
+          )}
+          {registrationEnabled && (
+            <p className='text-sm text-gray-600'>
+              Don&apos;t have an account?{' '}
+              <Link
+                href={{
+                  pathname: Routes.register,
+                  query: {
+                    redirect: redirect ? decodeURIComponent(redirect) : undefined,
+                  },
+                }}
+                className='font-medium text-brand-600 hover:underline'
+              >
+                Sign up
+              </Link>
+            </p>
+          )}
         </CardFooter>
       </Card>
     </div>
