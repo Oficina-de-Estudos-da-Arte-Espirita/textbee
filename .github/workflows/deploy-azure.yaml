@@ -60,7 +60,9 @@ jobs:
   deploy-prod:
     name: Deploy to prod
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && inputs.environment == 'prod'
+    if: >
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') ||
+      (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod')
     environment: production
     permissions:
       id-token: write
