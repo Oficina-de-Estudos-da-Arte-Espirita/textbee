@@ -19,12 +19,10 @@ on:
       service:
         description: 'Service to deploy'
         required: true
-        default: 'both'
+        default: 'api'
         type: choice
         options:
           - api
-          - web
-          - both
 
 env:
   REGISTRY: ghcr.io
@@ -59,16 +57,6 @@ jobs:
             --resource-group oeae-dev \
             --image ${{ env.IMAGE_PREFIX }}/api:dev
 
-      - name: Deploy Web container
-        if: >
-          github.event_name == 'workflow_run' ||
-          inputs.service == 'web' || inputs.service == 'both'
-        run: |
-          az containerapp update \
-            --name oeae-textbee-web-dev \
-            --resource-group oeae-dev \
-            --image ${{ env.IMAGE_PREFIX }}/web:dev
-
   deploy-prod:
     name: Deploy to prod
     runs-on: ubuntu-latest
@@ -96,12 +84,3 @@ jobs:
             --resource-group oeae-prod \
             --image ${{ env.IMAGE_PREFIX }}/api:latest
 
-      - name: Deploy Web container
-        if: >
-          github.event_name == 'workflow_run' ||
-          inputs.service == 'web' || inputs.service == 'both'
-        run: |
-          az containerapp update \
-            --name oeae-textbee-web-prod \
-            --resource-group oeae-prod \
-            --image ${{ env.IMAGE_PREFIX }}/web:latest

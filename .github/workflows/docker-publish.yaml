@@ -12,14 +12,12 @@ on:
                 default: 'dev'
                 type: string
             image_name:
-                description: 'Docker image name (api, web, or both)'
+                description: 'Docker image name'
                 required: true
-                default: 'both'
+                default: 'api'
                 type: choice
                 options:
                     - api
-                    - web
-                    - both
 
 env:
     REGISTRY: ghcr.io
@@ -78,70 +76,3 @@ jobs:
                   platforms: linux/amd64,linux/arm64
                   labels: ${{ steps.meta-api.outputs.labels }}
 
-    build-web:
-        name: Build and push Web image
-        runs-on: ubuntu-latest
-        if: ${{ github.event.inputs.image_name == 'web' || github.event.inputs.image_name == 'both' || github.event_name != 'workflow_dispatch' }}
-        permissions:
-            contents: read
-            packages: write
-            id-token: write
-
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
-              with:
-                  ref: ${{ github.event.inputs.git_ref || github.ref }}
-
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v2
-              with:
-                  platforms: "arm64,amd64"
-
-            - name: Setup Docker buildx
-              uses: docker/setup-buildx-action@v2
-
-            - name: Log into registry ${{ env.REGISTRY }}
-              if: github.event_name != 'pull_request'
-              uses: docker/login-action@v2
-              with:
-                  registry: ${{ env.REGISTRY }}
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Set API URL based on branch
-              id: api-url
-              run: |
-                  if [ "${{ github.ref_name }}" = "main" ]; then
-                    echo "url=https://sms.oficina.org.br/api/v1" >> $GITHUB_OUTPUT
-                    echo "tag=latest" >> $GITHUB_OUTPUT
-                  else
-                    echo "url=https://oeae-textbee-api-dev.mangoisland-511a26c8.centralus.azurecontainerapps.io/api/v1" >> $GITHUB_OUTPUT
-                    echo "tag=dev" >> $GITHUB_OUTPUT
-                  fi
-
-            - name: Extract Docker metadata for Web
-              id: meta-web
-              uses: docker/metadata-action@v5
-              with:
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-                  images: ${{ env.REGISTRY }}/${{ github.repository }}/web
-                  tags: |
-                      type=raw,value=${{ steps.api-url.outputs.tag }}
-                      type=semver,pattern=v{{version}}
-                      type=raw,value=${{ github.event.inputs.git_ref }},enable=${{ github.event_name == 'workflow_dispatch' }}
-
-            - name: Build and push Docker image for Web
-              uses: docker/build-push-action@v5
-              with:
-                  context: web
-                  build-args: |
-                      VERSION=${{ github.event.inputs.git_ref || github.ref_name }}
-                      NEXT_PUBLIC_API_BASE_URL=${{ steps.api-url.outputs.url }}
-                      NEXT_PUBLIC_REGISTRATION_ENABLED=false
-                      NEXT_PUBLIC_GOOGLE_LOGIN_ENABLED=false
-                      NEXT_PUBLIC_PASSWORD_RESET_ENABLED=false
-                  push: ${{ github.event_name != 'pull_request' }}
-                  tags: ${{ steps.meta-web.outputs.tags }}
-                  platforms: linux/amd64,linux/arm64
-                  labels: ${{ steps.meta-web.outputs.labels }}
