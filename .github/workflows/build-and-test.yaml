@@ -24,6 +24,9 @@ on:
           - dev
           - prod
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test-web-and-api:
     name: Build and Test web and api
@@ -62,15 +65,15 @@ jobs:
       - name: Build and test API
         run: |
           cd api
-          pnpm install
+          pnpm install --frozen-lockfile
           pnpm run build
           pnpm test
       
       - name: Build web
         run: |
           cd web
-          pnpm install
-          pnpm run build 
+          pnpm install --frozen-lockfile
+          pnpm run build
 
   build-and-test-android:
     name: Build and Test Android
