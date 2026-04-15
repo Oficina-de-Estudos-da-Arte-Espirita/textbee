@@ -28,10 +28,28 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+
 public class FCMService extends FirebaseMessagingService {
 
     private static final String TAG = "FirebaseMessagingService";
     private static final String DEFAULT_NOTIFICATION_CHANNEL_ID = "N1";
+    private static final int DEDUP_CACHE_SIZE = 100;
+
+    // LRU set to deduplicate FCM messages (at-least-once delivery can cause repeats)
+    private static final Set<String> recentSmsIds = Collections.newSetFromMap(
+            Collections.synchronizedMap(
+                    new LinkedHashMap<String, Boolean>(DEDUP_CACHE_SIZE + 1, 0.75f, true) {
+                        @Override
+                        protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest) {
+                            return size() > DEDUP_CACHE_SIZE;
+                        }
+                    }
+            )
+    );
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -40,7 +58,7 @@ public class FCMService extends FirebaseMessagingService {
         try {
             // Check message type first
             String messageType = remoteMessage.getData().get("type");
-            
+
             if ("heartbeat_check".equals(messageType)) {
                 // Handle heartbeat check request from backend
                 handleHeartbeatCheck();
@@ -53,12 +71,13 @@ public class FCMService extends FirebaseMessagingService {
 
             // Check if message contains a data payload
             if (remoteMessage.getData().size() > 0) {
+                // Deduplicate: FCM has at-least-once delivery semantics
+                String smsId = smsPayload != null ? smsPayload.getSmsId() : null;
+                if (smsId != null && !recentSmsIds.add(smsId)) {
+                    Log.w(TAG, "Duplicate FCM message for smsId=" + smsId + ", skipping");
+                    return;
+                }
                 sendSMS(smsPayload);
-            }
-
-            // Handle any notification message
-            if (remoteMessage.getNotification() != null) {
-                // sendNotification("notif msg", "msg body");
             }
         } catch (Exception e) {
             Log.e(TAG, "Error processing FCM message: " + e.getMessage());
